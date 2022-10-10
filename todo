@@ -2,5 +2,3 @@ mariadb create user and database omeka, grant privileges too
 
 set up initial db.ini in omeka install without overwriting existing.
 
-push to github
-
