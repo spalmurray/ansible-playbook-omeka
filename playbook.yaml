@@ -1,0 +1,53 @@
+- name: Omeka instance config
+  hosts: ec2instances
+  tasks:
+    - name: update and upgrade existing packages
+      become: yes
+      ansible.builtin.apt:
+        upgrade: yes
+        update_cache: yes
+
+    - name: install packages
+      become: yes
+      ansible.builtin.apt:
+        pkg: 
+        - apache2
+        - git
+        - htop
+        - imagemagick
+        - mariadb-server
+        - mysql-common
+        - php
+        - php-mysql
+        - php-xml
+        state: latest
+
+    - name: apache2 enable mod_rewrite
+      become: yes
+      apache2_module: name=rewrite state=present
+
+    - name: apache2 copy Omeka site config
+      become: yes
+      ansible.builtin.copy:
+        src: ./config/omeka.conf
+        dest: /etc/apache2/sites-available/omeka.conf
+
+    - name: a2ensite Omeka site
+      become: yes
+      command: a2ensite omeka
+      notify:
+        - restart apache2
+
+    - name: install Omeka
+      become: yes
+      git:
+        repo: https://github.com/omeka/Omeka.git
+        dest: /var/www/Omeka
+        clone: yes
+        update: yes
+
+
+  handlers:
+    - name: restart apache2
+      become: yes
+      service: name=apache2 state=restarted
